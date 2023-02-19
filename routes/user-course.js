@@ -10,23 +10,30 @@ import { userCourse } from '../models/user_course';
 const router = express.Router();
 
 // Get all user courses
-router.get('/api/v1/user-courses', currentUser, requireAuth, async (req, res) => {
-  const userCourses = await userCourse
-    .find()
-    .populate({
-      path: 'users_id',
-      select: 'name email',
-    })
-    .populate({
-      path: 'course_id',
-      select: 'title',
-    });
-  res.status(200).send({ userCourses });
-});
+router.get(
+  '/api/v1/user-courses',
+  currentUser,
+  requireAuth,
+  async (req, res) => {
+    const userCourses = await userCourse
+      .find()
+      .populate({
+        path: 'users_id',
+        select: 'name email',
+      })
+      .populate({
+        path: 'course_id',
+        select: 'title',
+      });
+    res.status(200).send({ userCourses });
+  }
+);
 
 // Create a user course
 router.post(
-  '/api/v1/user-courses', currentUser, requireAuth,
+  '/api/v1/user-courses',
+  currentUser,
+  requireAuth,
   [
     body('users_id')
       .trim()
@@ -44,34 +51,42 @@ router.post(
     const { users_id, course_id } = req.body;
     const userCourses = await userCourse({ users_id, course_id });
     await userCourses.save();
-    res.status(201).send({userCourses});
+    res.status(201).send({ userCourses });
   }
 );
 
 // Get a user course by id
-router.get('/api/v1/user-courses/:id', currentUser, requireAuth, validateRequest, async (req, res) => {
-  const { id } = req.params;
-  const userCourses = await userCourse
-    .findById({ _id: id })
-    .populate({
-      path: 'users_id',
-      select: 'name email',
-    })
-    .populate({
-      path: 'course_id',
-      select: 'title',
-    });
+router.get(
+  '/api/v1/user-courses/:id',
+  currentUser,
+  requireAuth,
+  validateRequest,
+  async (req, res) => {
+    const { id } = req.params;
+    const userCourses = await userCourse
+      .findById({ _id: id })
+      .populate({
+        path: 'users_id',
+        select: 'name email',
+      })
+      .populate({
+        path: 'course_id',
+        select: 'title',
+      });
 
-  if (!userCourses) {
-    throw new NotFoundError();
+    if (!userCourses) {
+      throw new NotFoundError();
+    }
+
+    res.status(200).send(userCourses);
   }
-
-  res.status(200).send(userCourses);
-});
+);
 
 // Update a user course by id
 router.put(
-  '/api/v1/user-courses/:id', currentUser, requireAuth,
+  '/api/v1/user-courses/:id',
+  currentUser,
+  requireAuth,
   [
     body('users_id')
       .trim()
@@ -90,27 +105,34 @@ router.put(
     const { users_id, course_id } = req.body;
     const userCourses = await userCourse.findOneAndUpdate(
       { _id: id },
-      { users_id, course_id }
+      { users_id, course_id },
+      { new: true }
     );
 
     if (!userCourses) {
       throw new BadRequestError(`User course with id: ${id} not found`);
     }
 
-    res.status(200).send({ message: `Course with id: ${id} updated` });
+    res.status(200).send({ userCourses });
   }
 );
 
 // Delete a user course by id
-router.delete('/api/v1/user-courses/:id', currentUser, requireAuth, validateRequest, async (req, res) => {
+router.delete(
+  '/api/v1/user-courses/:id',
+  currentUser,
+  requireAuth,
+  validateRequest,
+  async (req, res) => {
     const { id } = req.params;
     const userCourses = await userCourse.findOneAndRemove({ _id: id });
 
     if (!userCourses) {
-        throw new BadRequestError(`User course with id: ${id} not found`);
+      throw new BadRequestError(`User course with id: ${id} not found`);
     }
 
     res.status(200).send({ message: `User course with id: ${id} deleted` });
-})
+  }
+);
 
 export { router as userCourseRouter };

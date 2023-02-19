@@ -20,60 +20,80 @@ router.get('/api/v1/courses', currentUser, requireAuth, async (req, res) => {
 
 // Create a course
 router.post(
-  '/api/v1/courses', currentUser, requireAuth,
+  '/api/v1/courses',
+  currentUser,
+  requireAuth,
   [body('title').trim().notEmpty().withMessage('Title must be filled out')],
   validateRequest,
   async (req, res) => {
     const { title, course_category_id } = req.body;
     const course = await Course({ title, course_category_id });
     await course.save();
-    res.status(201).send({course});
+    res.status(201).send({ course });
   }
 );
 
 // Get a course by id
-router.get('/api/v1/courses/:id', currentUser, requireAuth, validateRequest, async (req, res) => {
-  const { id } = req.params;
-  const course = await Course.findById({ _id: id }).populate({
-    path: 'course_category_id',
-    select: 'name',
-  });
+router.get(
+  '/api/v1/courses/:id',
+  currentUser,
+  requireAuth,
+  validateRequest,
+  async (req, res) => {
+    const { id } = req.params;
+    const course = await Course.findById({ _id: id }).populate({
+      path: 'course_category_id',
+      select: 'name',
+    });
 
-  if (!course) {
-    throw new NotFoundError();
+    if (!course) {
+      throw new NotFoundError();
+    }
+
+    res.status(200).send({ course });
   }
-
-  res.status(200).send({course});
-});
+);
 
 // Update a course by id
 router.put(
-    '/api/v1/courses/:id', currentUser, requireAuth,
-    [body('title').trim().notEmpty().withMessage('Title must be filled out')],
-    validateRequest,
-    async (req, res) => {
-        const { id } = req.params;
-        const { title, course_category_id } = req.body;
-        const course = await Course.findOneAndUpdate({ _id: id }, { title, course_category_id });
+  '/api/v1/courses/:id',
+  currentUser,
+  requireAuth,
+  [body('title').trim().notEmpty().withMessage('Title must be filled out')],
+  validateRequest,
+  async (req, res) => {
+    const { id } = req.params;
+    const { title, course_category_id } = req.body;
+    const course = await Course.findOneAndUpdate(
+      { _id: id },
+      { title, course_category_id },
+      { new: true }
+    );
 
-        if (!course) {
-            throw new BadRequestError(`Course with id: ${id} not found`);
-        }
-
-        res.status(200).send({ message: `Course with id: ${id} updated` });
+    if (!course) {
+      throw new BadRequestError(`Course with id: ${id} not found`);
     }
-)
+
+    res.status(200).send({ course });
+  }
+);
 
 // Delete a course by id
-router.delete('/api/v1/courses/:id', currentUser, requireAuth, validateRequest, async (req, res) => {
+router.delete(
+  '/api/v1/courses/:id',
+  currentUser,
+  requireAuth,
+  validateRequest,
+  async (req, res) => {
     const { id } = req.params;
     const course = await Course.findOneAndRemove({ _id: id });
 
     if (!course) {
-        throw new BadRequestError(`Course with id: ${id} not found`);
+      throw new BadRequestError(`Course with id: ${id} not found`);
     }
 
     res.status(200).send({ message: `Course with id: ${id} deleted` });
-})
+  }
+);
 
 export { router as courseRouter };

@@ -34,56 +34,60 @@ router.post(
     }
     const user = await User({ name, email, password });
     await user.save();
-    res.status(201).send({user});
+    res.status(201).send({ user });
   }
 );
 
 // Get a user by id
 router.get('/api/v1/users/:id', async (req, res) => {
-    const { id } = req.params;
-    const user = await User.findOne({ _id: id });
+  const { id } = req.params;
+  const user = await User.findOne({ _id: id });
 
-    if (!user) {
-        throw new NotFoundError();
-    }
+  if (!user) {
+    throw new NotFoundError();
+  }
 
-    res.status(200).send({ user });
+  res.status(200).send({ user });
 });
 
 // Update a user by id
 router.put(
-    '/api/v1/users/:id',
-    [body('name').trim().notEmpty().withMessage('Name must be filled out')],
-    [body('email').trim().notEmpty().withMessage('Email must be valid')],
-    [
-        body('password')
-            .trim()
-            .notEmpty()
-            .withMessage('Password must be filled out'),
-    ],
-    validateRequest,
-    async (req, res) => {
-        const { id } = req.params;
-        const { name, email, password } = req.body;
-        const user = await User.findOneAndUpdate({ _id: id }, { name, email, password });
-        if (!user) {
-            throw new BadRequestError(`User with id: ${id} not found`);
-        }
-
-        res.status(200).send({ message: `User with id: ${id} updated` });
+  '/api/v1/users/:id',
+  [body('name').trim().notEmpty().withMessage('Name must be filled out')],
+  [body('email').trim().notEmpty().withMessage('Email must be valid')],
+  [
+    body('password')
+      .trim()
+      .notEmpty()
+      .withMessage('Password must be filled out'),
+  ],
+  validateRequest,
+  async (req, res) => {
+    const { id } = req.params;
+    const { name, email, password } = req.body;
+    const user = await User.findOneAndUpdate(
+      { _id: id },
+      { name, email, password },
+      { new: true }
+    );
+    if (!user) {
+      throw new BadRequestError(`User with id: ${id} not found`);
     }
-)
+
+    res.status(200).send({ user });
+  }
+);
 
 // Delete a user by id
 router.delete('/api/v1/users/:id', async (req, res) => {
-    const { id } = req.params;
-    const user = await User.findOneAndRemove({ _id: id });
+  const { id } = req.params;
+  const user = await User.findOneAndRemove({ _id: id });
 
-    if (!user) {
-        throw new BadRequestError(`User with id: ${id} not found`);
-    }
+  if (!user) {
+    throw new BadRequestError(`User with id: ${id} not found`);
+  }
 
-    res.status(200).send({ message: `User with id: ${id} deleted` });
-})
+  res.status(200).send({ message: `User with id: ${id} deleted` });
+});
 
 export { router as userRouter };

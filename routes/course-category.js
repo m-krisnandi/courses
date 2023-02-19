@@ -10,14 +10,21 @@ import { currentUser } from '../middlewares/current-user';
 const router = express.Router();
 
 // Get all course categories
-router.get('/api/v1/course-categories', currentUser, requireAuth, async (req, res) => {
-  const courseCategories = await Category.find();
-  res.status(200).send({ courseCategories });
-});
+router.get(
+  '/api/v1/course-categories',
+  currentUser,
+  requireAuth,
+  async (req, res) => {
+    const courseCategories = await Category.find();
+    res.status(200).send({ courseCategories });
+  }
+);
 
 // Create a course category
 router.post(
-  '/api/v1/course-categories', currentUser, requireAuth,
+  '/api/v1/course-categories',
+  currentUser,
+  requireAuth,
   [body('name').trim().notEmpty().withMessage('Name must be filled out')],
   validateRequest,
   async (req, res) => {
@@ -30,7 +37,9 @@ router.post(
 
 // Get a course category by id
 router.get(
-  '/api/v1/course-categories/:id', currentUser, requireAuth,
+  '/api/v1/course-categories/:id',
+  currentUser,
+  requireAuth,
   validateRequest,
   async (req, res) => {
     const { id } = req.params;
@@ -44,36 +53,44 @@ router.get(
 
 // Update a course category by id
 router.put(
-  '/api/v1/course-categories/:id', currentUser, requireAuth,
+  '/api/v1/course-categories/:id',
+  currentUser,
+  requireAuth,
   [body('name').trim().notEmpty().withMessage('Name must be filled out')],
   validateRequest,
   async (req, res) => {
     const { id } = req.params;
     const { name } = req.body;
-    const courseCategory = await Category.findOneAndUpdate({ _id: id }, { name });
+    const courseCategory = await Category.findOneAndUpdate(
+      { _id: id },
+      { name },
+      { new: true }
+    );
 
     if (!courseCategory) {
       throw new BadRequestError(`Course category with id: ${id} not found`);
     }
 
-    res.status(200).send({ message: `Course category with id: ${id} updated` });
+    res.status(200).send({ courseCategory });
   }
 );
 
 // Delete a course category by id
 router.delete(
-    '/api/v1/course-categories/:id', currentUser, requireAuth,
-    validateRequest,
-    async (req, res) => {
-        const { id } = req.params;
-        const courseCategory = await Category.findOneAndRemove({ _id: id });
+  '/api/v1/course-categories/:id',
+  currentUser,
+  requireAuth,
+  validateRequest,
+  async (req, res) => {
+    const { id } = req.params;
+    const courseCategory = await Category.findOneAndRemove({ _id: id });
 
-        if (!courseCategory) {
-            throw new BadRequestError(`Course category with id: ${id} not found`);
-        }
-
-        res.status(200).send({ message: `Course category with id: ${id} deleted` });
+    if (!courseCategory) {
+      throw new BadRequestError(`Course category with id: ${id} not found`);
     }
-)
+
+    res.status(200).send({ message: `Course category with id: ${id} deleted` });
+  }
+);
 
 export { router as courseCategoryRouter };
