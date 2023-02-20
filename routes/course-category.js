@@ -29,8 +29,17 @@ router.post(
   validateRequest,
   async (req, res) => {
     const { name } = req.body;
+
+    // Check if the course category already exists
+    const check = await Category.findOne({ name });
+
+    if (check) {
+      throw new BadRequestError(`Course category with name: ${name} already exists`);
+    }
+
     const courseCategory = await Category({ name });
     await courseCategory.save();
+    
     res.status(201).send(courseCategory);
   }
 );
@@ -61,6 +70,13 @@ router.put(
   async (req, res) => {
     const { id } = req.params;
     const { name } = req.body;
+
+    // Check if the course category already exists and id is not the same
+    const check = await Category.findOne({ name, _id: { $ne: id } });
+
+    if (check) {
+      throw new BadRequestError(`Course category with name: ${name} already exists`);
+    }
     const courseCategory = await Category.findOneAndUpdate(
       { _id: id },
       { name },
