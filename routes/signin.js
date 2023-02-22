@@ -51,6 +51,8 @@ router.post(
       jwt: userJwt,
     };
 
+    delete existingAdmin._doc.password;
+
     res.status(200).send(existingAdmin);
   }
 );
