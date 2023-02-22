@@ -21,12 +21,17 @@ router.post(
   ],
   validateRequest,
   async (req, res) => {
-    const { name, email, password } = req.body;
+    const { name, email, password, confirmPassword } = req.body;
+
 
     const existingAdmin = await Admin.findOne({ email });
 
     if (existingAdmin) {
       throw new BadRequestError('Email in use');
+    }
+
+    if (password !== confirmPassword) {
+      throw new BadRequestError('Passwords do not match');
     }
 
     const admin = Admin.build({ name, email, password });
@@ -45,6 +50,8 @@ router.post(
     req.session = {
       jwt: userJwt,
     };
+
+    delete admin._doc.password;
 
     res.status(201).send(admin);
   }
